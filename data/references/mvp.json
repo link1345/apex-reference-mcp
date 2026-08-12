@@ -1,0 +1,625 @@
+[
+  {
+    "id": "item.shield_cell",
+    "name": "Shield Cell",
+    "type": "item",
+    "aliases": ["シールドセル", "セル"],
+    "description": "Small shield recovery item commonly visible during reset windows in APEX video review.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "effect": { "kind": "absolute", "value": "restore_shields" },
+      "analysisCue": { "kind": "absolute", "value": "short_shield_reset" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide lists shield cells as shield recovery items."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "item.med_kit",
+    "name": "Med Kit",
+    "type": "item",
+    "aliases": ["医療キット", "メディキット"],
+    "description": "Health recovery item used to restore health after taking flesh damage.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "effect": { "kind": "absolute", "value": "restore_health" },
+      "analysisCue": { "kind": "absolute", "value": "health_reset" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/terms-guide/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA terms guide defines Med Kit as a health recovery item."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "item.syringe",
+    "name": "Syringe",
+    "type": "item",
+    "aliases": ["注射器", "シリンジ"],
+    "description": "Small health recovery item visible when a player stabilizes after flesh damage.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "effect": { "kind": "absolute", "value": "restore_health" },
+      "analysisCue": { "kind": "absolute", "value": "short_health_reset" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide lists syringes as health recovery items."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "item.phoenix_kit",
+    "name": "Phoenix Kit",
+    "type": "item",
+    "aliases": ["フェニックスキット", "フェニキ"],
+    "description": "Full recovery item that restores both health and shields according to EA terminology.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "effect": { "kind": "absolute", "value": "restore_health_and_shields" },
+      "analysisCue": { "kind": "absolute", "value": "full_reset_attempt" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/terms-guide/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA terms guide defines Phoenix Kit as restoring health and shields."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "item.knockdown_shield",
+    "name": "Knockdown Shield",
+    "type": "item",
+    "aliases": ["ノックダウンシールド", "ノックシールド"],
+    "description": "Protective item usable while knocked down, important when reviewing thirst pressure and revive windows.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "usableState": { "kind": "absolute", "value": "knocked_down" },
+      "effect": { "kind": "absolute", "value": "temporary_damage_block" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/terms-guide/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA terms guide explains Knockdown Shield use while knocked down."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "item.backpack",
+    "name": "Backpack",
+    "type": "item",
+    "aliases": ["バックパック", "バッグ"],
+    "description": "Inventory expansion item that affects loot capacity during rotations and resets.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "effect": { "kind": "absolute", "value": "increase_inventory_capacity" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide says larger backpacks let players pick up more items."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "item.frag_grenade",
+    "name": "Frag Grenade",
+    "type": "item",
+    "aliases": ["フラググレネード", "グレネード", "投げ物"],
+    "description": "Throwable ordnance used to pressure cover, deal damage, or buy time.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "category": { "kind": "absolute", "value": "ordnance" },
+      "analysisCue": { "kind": "absolute", "value": "cover_pressure" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide describes grenades as tactical tools for cover pressure, damage, and time."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "weapon.r301_carbine",
+    "name": "R-301 Carbine",
+    "type": "weapon",
+    "aliases": ["R301", "R-301", "カービン", "R301カービン"],
+    "description": "Assault rifle listed by EA as suitable for close and mid-range combat.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "class": { "kind": "absolute", "value": "assault_rifle" },
+      "rangeProfile": { "kind": "absolute", "value": "close_to_mid_range" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/guns-and-weapons/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA weapon guide lists R-301 Carbine under assault rifles."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "weapon.vk47_flatline",
+    "name": "VK-47 Flatline",
+    "type": "weapon",
+    "aliases": ["Flatline", "フラットライン"],
+    "description": "Assault rifle used as a common close-to-mid range primary in video review.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "class": { "kind": "absolute", "value": "assault_rifle" },
+      "rangeProfile": { "kind": "absolute", "value": "close_to_mid_range" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/guns-and-weapons/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA weapon guide lists VK-47 Flatline under assault rifles."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "weapon.peacekeeper",
+    "name": "Peacekeeper",
+    "type": "weapon",
+    "aliases": ["PK", "ピースキーパー", "ピーキー"],
+    "description": "Shotgun listed by EA as a close-range weapon; useful for reviewing bubble or doorway fights.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "class": { "kind": "absolute", "value": "shotgun" },
+      "rangeProfile": { "kind": "absolute", "value": "close_range" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/guns-and-weapons/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA weapon guide lists Peacekeeper under shotguns."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "weapon.wingman",
+    "name": "Wingman",
+    "type": "weapon",
+    "aliases": ["ウィングマン"],
+    "description": "Pistol listed by EA; marked with patch-dependent sample damage from official patch notes.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": {
+      "mode": "patch_dependent",
+      "version": "takeover",
+      "effectiveFrom": "2025-02-10T00:00:00.000Z"
+    },
+    "values": {
+      "class": { "kind": "absolute", "value": "pistol" },
+      "damage.body": { "kind": "absolute", "value": 45 },
+      "damage.headshot": { "kind": "absolute", "value": 72 }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_patch_note",
+        "sourceUrl": "https://www.ea.com/en/games/apex-legends/apex-legends/news/takeover-patch-notes",
+        "sourcePublishedAt": "2025-02-10T00:00:00.000Z",
+        "effectiveFrom": "2025-02-10T00:00:00.000Z",
+        "confidence": 0.95,
+        "evidenceLevel": "explicit_absolute_value",
+        "evidence": "Takeover patch notes state Wingman body and headshot damage values."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": [
+      {
+        "id": "takeover-wingman-body-damage",
+        "fieldPath": "values.damage.body",
+        "changeType": "set",
+        "oldValue": { "kind": "absolute", "value": 45 },
+        "newValue": { "kind": "absolute", "value": 48 },
+        "patch": "takeover",
+        "effectiveFrom": "2025-02-10T00:00:00.000Z",
+        "provenance": {
+          "sourceType": "official_patch_note",
+          "sourceUrl": "https://www.ea.com/en/games/apex-legends/apex-legends/news/takeover-patch-notes",
+          "sourcePublishedAt": "2025-02-10T00:00:00.000Z",
+          "effectiveFrom": "2025-02-10T00:00:00.000Z",
+          "confidence": 0.95,
+          "evidenceLevel": "explicit_absolute_value",
+          "evidence": "Takeover patch notes state Wingman damage increased to 48 from 45."
+        }
+      }
+    ]
+  },
+  {
+    "id": "weapon.volt_smg",
+    "name": "Volt SMG",
+    "type": "weapon",
+    "aliases": ["Volt", "ボルト"],
+    "description": "SMG listed in official weapon guidance; useful for close-range tracking review.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "class": { "kind": "absolute", "value": "smg" },
+      "rangeProfile": { "kind": "absolute", "value": "close_range" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/guns-and-weapons/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA weapon guide includes SMGs as a weapon category and lists Volt in starter weapon guidance."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.knockdown",
+    "name": "Knockdown",
+    "type": "mechanic",
+    "aliases": ["ノック", "ダウン", "knocked"],
+    "description": "State where a player is downed and can use a knockdown shield while awaiting revive or elimination.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "relatedItem": { "kind": "absolute", "value": "item.knockdown_shield" },
+      "analysisCue": { "kind": "absolute", "value": "revive_or_finish_window" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/terms-guide/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA terms guide describes knockdown shield use when knocked down."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.revive",
+    "name": "Revive",
+    "type": "mechanic",
+    "aliases": ["蘇生", "起こす", "rev"],
+    "description": "Team action that brings a knocked player back before they are eliminated.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "requiresState": { "kind": "absolute", "value": "teammate_knocked" },
+      "analysisCue": { "kind": "absolute", "value": "revive_timing" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide discusses being revived by teammates after knockdown."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.respawn_beacon",
+    "name": "Respawn Beacon",
+    "type": "mechanic",
+    "aliases": ["リスポーンビーコン", "ビーコン"],
+    "description": "Object used to bring eliminated teammates back after their banner is recovered.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "requires": { "kind": "absolute", "value": "legend_banner" },
+      "analysisCue": { "kind": "absolute", "value": "respawn_route" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/terms-guide/",
+        "confidence": 0.9,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA terms guide defines Respawn Beacon and banner requirement."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.shield_crack",
+    "name": "Shield Crack",
+    "type": "mechanic",
+    "aliases": ["シールド割れ", "割れ", "crack"],
+    "description": "Video-review cue indicating shields were depleted and follow-up damage may hit health.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "effect": { "kind": "absolute", "value": "shield_depleted" },
+      "officialAbsoluteThreshold": { "kind": "unknown", "reason": "EA public guides identify shield recovery and shields, but this dataset has no official numeric crack threshold." }
+    },
+    "provenance": [
+      {
+        "sourceType": "manual_verified",
+        "sourceId": "mvp-video-review-2026-08-12",
+        "confidence": 0.7,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "Included as a common APEX VOD review cue; no numeric threshold is stored without official source."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.healing_cancel",
+    "name": "Healing Cancel",
+    "type": "mechanic",
+    "aliases": ["回復キャンセル", "キャンセル"],
+    "description": "Review cue for interrupted recovery; exact cancel behavior is kept descriptive rather than numeric.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "interruptedAction": { "kind": "absolute", "value": "healing_or_shield_recovery" },
+      "exactRules": { "kind": "unknown", "reason": "No official document in the MVP source set gives complete cancel-rule details." }
+    },
+    "provenance": [
+      {
+        "sourceType": "manual_verified",
+        "sourceId": "mvp-video-review-2026-08-12",
+        "confidence": 0.65,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "Included as a frequent review term; exact rule detail remains unknown until an official source is added."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.inventory_movement",
+    "name": "Inventory Movement",
+    "type": "mechanic",
+    "aliases": ["インベントリ中の移動", "漁りながら移動", "loot movement"],
+    "description": "Review cue for movement while looting or managing inventory; exact constraints are not asserted in this MVP dataset.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "analysisCue": { "kind": "absolute", "value": "looting_movement" },
+      "exactConstraints": { "kind": "unknown", "reason": "No official document in the MVP source set states exact inventory movement constraints." }
+    },
+    "provenance": [
+      {
+        "sourceType": "manual_verified",
+        "sourceId": "mvp-video-review-2026-08-12",
+        "confidence": 0.65,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "Included because looting movement is commonly inspected in video review; exact constraints are not inferred."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.holster_sprint",
+    "name": "Holster Sprint",
+    "type": "mechanic",
+    "aliases": ["武器を収める", "納刀", "しまう"],
+    "description": "Movement mechanic where players holster weapons for faster movement in rotations.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "analysisCue": { "kind": "absolute", "value": "rotation_speed" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide advises holstering weapons while running."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "mechanic.slide",
+    "name": "Slide",
+    "type": "mechanic",
+    "aliases": ["スライディング", "スライド"],
+    "description": "Movement action used on hills or slopes to move quickly.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "analysisCue": { "kind": "absolute", "value": "fast_rotation_or_peek_timing" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide recommends sliding down hills and slopes for movement."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "legend.lifeline",
+    "name": "Lifeline",
+    "type": "legend",
+    "aliases": ["ライフライン"],
+    "description": "Support-class Legend sample for revive and squad sustain review contexts.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "class": { "kind": "absolute", "value": "support" },
+      "analysisCue": { "kind": "absolute", "value": "squad_help_or_heal" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/abilities/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA legend guide describes Support as helping and healing the squad."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "legend.wraith",
+    "name": "Wraith",
+    "type": "legend",
+    "aliases": ["レイス"],
+    "description": "Skirmisher-style mobility sample used for disengage and reposition review contexts.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "analysisCue": { "kind": "absolute", "value": "mobility_reposition" },
+      "abilityDetails": { "kind": "unknown", "reason": "This MVP record stores only review category; exact current ability text should be sourced before use." }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.8,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide lists Wraith among starting Legends."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "legend.bangalore",
+    "name": "Bangalore",
+    "type": "legend",
+    "aliases": ["バンガロール", "バンガ"],
+    "description": "Starting Legend sample often relevant for smoke, line-of-sight, and fight reset review.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "analysisCue": { "kind": "absolute", "value": "line_of_sight_control" },
+      "abilityDetails": { "kind": "unknown", "reason": "This MVP record stores only review category; exact current ability text should be sourced before use." }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.8,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide lists Bangalore among starting Legends."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "legend.bloodhound",
+    "name": "Bloodhound",
+    "type": "legend",
+    "aliases": ["ブラッドハウンド", "ブラハ"],
+    "description": "Recon-class sample used for enemy tracking and information-gathering review contexts.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "class": { "kind": "absolute", "value": "recon" },
+      "analysisCue": { "kind": "absolute", "value": "enemy_tracking_or_intel" }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/abilities/",
+        "confidence": 0.85,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA legend guide describes Recon as tracking enemies and gathering intel."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  },
+  {
+    "id": "legend.pathfinder",
+    "name": "Pathfinder",
+    "type": "legend",
+    "aliases": ["パスファインダー", "パス"],
+    "description": "Movement-oriented Legend sample for zipline and reposition review contexts.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": { "mode": "stable" },
+    "values": {
+      "analysisCue": { "kind": "absolute", "value": "team_reposition" },
+      "abilityDetails": { "kind": "unknown", "reason": "This MVP record stores only review category; exact current ability text should be sourced before use." }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_document",
+        "sourceUrl": "https://help.ea.com/ja/articles/apex-legends/how-to-play/",
+        "confidence": 0.8,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "EA beginner guide lists Pathfinder as an unlockable Legend through the Welcome Pass."
+      }
+    ],
+    "fieldProvenance": {},
+    "changeEvents": []
+  }
+]

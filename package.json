@@ -10,6 +10,7 @@
     "start": "bun run src/index.ts",
     "changes:extract": "bun run src/reference/changePipelineCli.ts extract",
     "changes:approve": "bun run src/reference/changePipelineCli.ts approve",
+    "references:validate": "bun run src/reference/validationCli.ts",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

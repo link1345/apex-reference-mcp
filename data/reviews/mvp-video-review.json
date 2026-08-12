@@ -1,0 +1,37 @@
+{
+  "id": "mvp-video-review-2026-08-12",
+  "reviewedAt": "2026-08-12T00:00:00.000Z",
+  "source": {
+    "kind": "manual_apex_vod_review",
+    "description": "MVP smoke review notes captured from an APEX gameplay review pass; raw video is not stored in this repository."
+  },
+  "observedReferences": [
+    "item.shield_battery",
+    "item.shield_cell",
+    "item.med_kit",
+    "weapon.r301_carbine",
+    "weapon.r99_smg.damage",
+    "mechanic.knockdown",
+    "mechanic.revive",
+    "mechanic.shield_crack",
+    "mechanic.inventory_movement",
+    "legend.bangalore"
+  ],
+  "missingReferences": [
+    {
+      "term": "EVO shield level",
+      "type": "mechanic",
+      "reason": "Observed in review context, but exact current shield-level thresholds require official sourcing before encoding."
+    },
+    {
+      "term": "ammo stack size",
+      "type": "item",
+      "reason": "Relevant for inventory review, but no official MVP source in this repo confirms current stack counts."
+    },
+    {
+      "term": "current ring damage",
+      "type": "mechanic",
+      "reason": "Useful for rotation analysis, but patch/current mode differences should be sourced before storing values."
+    }
+  ]
+}

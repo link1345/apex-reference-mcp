@@ -10,6 +10,7 @@ import {
   extractReleaseNoteCandidates,
   writeChangeCandidates
 } from "../src/reference/changePipeline.js";
+import { validateReferenceData } from "../src/reference/validation.js";
 import { createApexReferenceServer } from "../src/server.js";
 
 const repository = new ReferenceRepository();
@@ -18,8 +19,28 @@ describe("reference data model", () => {
   test("loads sample references from static JSON", async () => {
     const references = await repository.listReferences();
 
-    expect(references.length).toBeGreaterThanOrEqual(1);
+    expect(references.length).toBeGreaterThanOrEqual(20);
     expect(references.map((reference) => reference.id)).toContain("item.shield_battery");
+  });
+
+  test("loads MVP data across every major reference category", async () => {
+    const references = await repository.listReferences();
+    const ids = references.map((reference) => reference.id);
+
+    expect(references.length).toBeLessThanOrEqual(50);
+    expect(new Set(references.map((reference) => reference.type))).toEqual(
+      new Set(["weapon", "legend", "item", "mechanic"])
+    );
+    expect(ids).toEqual(expect.arrayContaining([
+      "item.shield_cell",
+      "item.med_kit",
+      "weapon.r301_carbine",
+      "weapon.peacekeeper",
+      "mechanic.knockdown",
+      "mechanic.healing_cancel",
+      "legend.lifeline",
+      "legend.bangalore"
+    ]));
   });
 
   test("distinguishes stable and patch-dependent references", async () => {
@@ -27,7 +48,8 @@ describe("reference data model", () => {
     const stable = references.find((reference) => reference.patch.mode === "stable");
     const patchDependent = references.find((reference) => reference.patch.mode === "patch_dependent");
 
-    expect(stable?.id).toBe("item.shield_battery");
+    expect(stable).toBeDefined();
+    expect(references.find((reference) => reference.id === "item.shield_battery")?.patch.mode).toBe("stable");
     expect(patchDependent?.patch.mode).toBe("patch_dependent");
   });
 
@@ -62,6 +84,20 @@ describe("reference data model", () => {
     expect(noMatch).toEqual([]);
   });
 
+  test("searches MVP records by practical video review categories", async () => {
+    const item = await repository.searchReferences({ query: "シールドセル", type: "item" });
+    expect(item[0]?.id).toBe("item.shield_cell");
+
+    const weapon = await repository.searchReferences({ query: "Peacekeeper", type: "weapon" });
+    expect(weapon[0]?.id).toBe("weapon.peacekeeper");
+
+    const mechanic = await repository.searchReferences({ query: "回復キャンセル", type: "mechanic" });
+    expect(mechanic[0]?.id).toBe("mechanic.healing_cancel");
+
+    const legend = await repository.searchReferences({ query: "バンガ", type: "legend" });
+    expect(legend[0]?.id).toBe("legend.bangalore");
+  });
+
   test("gets complete references by id and exact name plus type", async () => {
     const byId = await repository.getReference({ id: "item.shield_battery" });
     expect(byId.found).toBe(true);
@@ -80,6 +116,12 @@ describe("reference data model", () => {
     expect(byName.found ? byName.resolvedBy : "").toBe("name_type");
     expect(byName.found ? byName.reference.id : "").toBe("weapon.r99_smg.damage");
     expect(byName.found ? byName.reference.provenance[0]?.sourceType : "").toBe("official_patch_note");
+
+    const mvpRecord = await repository.getReference({ id: "mechanic.inventory_movement" });
+    expect(mvpRecord.found).toBe(true);
+    expect(mvpRecord.found ? mvpRecord.reference.values.exactConstraints : undefined).toMatchObject({
+      kind: "unknown"
+    });
   });
 
   test("resolves latest and historical patch-dependent references", async () => {
@@ -204,6 +246,37 @@ describe("reference data model", () => {
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("MVP reference data validation", () => {
+  test("passes schema-backed data validation and preserves unknown facts", async () => {
+    const report = await validateReferenceData(join(process.cwd(), "data", "references"));
+
+    expect(report.valid).toBe(true);
+    expect(report.referenceCount).toBeGreaterThanOrEqual(20);
+    expect(report.referenceCount).toBeLessThanOrEqual(50);
+    expect(report.countsByType).toMatchObject({
+      item: expect.any(Number),
+      weapon: expect.any(Number),
+      legend: expect.any(Number),
+      mechanic: expect.any(Number)
+    });
+    expect(report.unknownOrRelativeCount).toBeGreaterThanOrEqual(1);
+    expect(report.issues).toEqual([]);
+  });
+
+  test("keeps the MVP video review missing-reference list reviewable", async () => {
+    const raw = await readFile(join(process.cwd(), "data", "reviews", "mvp-video-review.json"), "utf8");
+    const review = JSON.parse(raw) as {
+      observedReferences?: string[];
+      missingReferences?: Array<{ term?: string; type?: string; reason?: string }>;
+    };
+
+    expect(review.observedReferences).toContain("mechanic.inventory_movement");
+    expect(review.missingReferences?.length).toBeGreaterThanOrEqual(1);
+    expect(review.missingReferences?.map((missing) => missing.term)).toContain("EVO shield level");
+    expect(review.missingReferences?.every((missing) => missing.reason !== undefined && missing.reason.length > 0)).toBe(true);
   });
 });
 
@@ -344,7 +417,7 @@ describe("release note change candidate pipeline", () => {
       "R99: damage body 13 -> 14",
       "weapon spread sample: spread decreased",
       "Shield Battery: fast use added",
-      "Peacekeeper weapon: choke added",
+      "Rampage LMG weapon: charged state added",
       "R99: hopup removed"
     ].join("\n");
 

@@ -13,6 +13,7 @@ bun install
 bun run typecheck
 bun test
 bun run start
+bun run references:validate
 bun run changes:extract -- --input ./release-note.md --output ./data/changes/pending/release-note.json --patch sample-season --effectiveFrom 2026-08-12T00:00:00.000Z --sourceUrl https://www.ea.com/games/apex-legends/news/example
 bun run changes:approve -- --candidates ./data/changes/pending/release-note.json --references ./data/references/sample.json
 ```
@@ -31,6 +32,10 @@ The schema distinguishes:
 - baseline values vs chronological change events for patch-dependent records
 
 Relative changes intentionally preserve direction only and do not invent numeric values.
+
+`bun run references:validate` loads every `data/references/*.json` file through the schema and reports missing provenance, missing `verifiedAt`, missing patch effective periods, and suspicious numeric absolute values on fields marked as unknown.
+
+The MVP seed dataset is intentionally small and review-oriented. It covers core recovery/shield items, representative weapons, common video-review mechanics, and a handful of Legend samples. `data/reviews/mvp-video-review.json` records one MVP review pass and the current missing Reference terms that should be sourced before adding more facts.
 
 ## Release Note Change Pipeline
 
