@@ -1,0 +1,168 @@
+[
+  {
+    "id": "item.shield_battery",
+    "name": "Shield Battery",
+    "type": "item",
+    "aliases": ["シールドバッテリー", "バッテリー", "bat"],
+    "description": "Restores shields after a channel time. This sample records a stable item fact with manual verification provenance.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": {
+      "mode": "stable"
+    },
+    "values": {
+      "effect": {
+        "kind": "absolute",
+        "value": "restore_shields"
+      }
+    },
+    "provenance": [
+      {
+        "sourceType": "manual_verified",
+        "sourceId": "seed-data-2026-08-12",
+        "confidence": 0.8,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "Seed sample for validating stable reference records."
+      }
+    ],
+    "fieldProvenance": {
+      "values.effect": {
+        "sourceType": "manual_verified",
+        "sourceId": "seed-data-2026-08-12",
+        "confidence": 0.8,
+        "evidenceLevel": "manual_confirmation",
+        "evidence": "Seed sample for validating stable reference records."
+      }
+    },
+    "changeEvents": []
+  },
+  {
+    "id": "weapon.r99_smg.damage",
+    "name": "R-99 SMG damage",
+    "type": "weapon",
+    "aliases": ["R99", "R-99", "アール99"],
+    "description": "Patch-dependent sample for weapon damage where an official patch note states an explicit old and new value.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": {
+      "mode": "patch_dependent",
+      "version": "sample-season",
+      "effectiveFrom": "2026-08-12T00:00:00.000Z"
+    },
+    "values": {
+      "damage.body": {
+        "kind": "absolute",
+        "value": 12
+      }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_patch_note",
+        "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+        "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
+        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "confidence": 0.95,
+        "evidenceLevel": "explicit_absolute_value",
+        "evidence": "Sample patch note states body damage changed from 11 to 12."
+      }
+    ],
+    "fieldProvenance": {
+      "values.damage.body": {
+        "sourceType": "official_patch_note",
+        "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+        "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
+        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "confidence": 0.95,
+        "evidenceLevel": "explicit_absolute_value",
+        "evidence": "Sample patch note states body damage changed from 11 to 12."
+      }
+    },
+    "changeEvents": [
+      {
+        "id": "sample-season-r99-body-damage",
+        "fieldPath": "values.damage.body",
+        "changeType": "set",
+        "oldValue": {
+          "kind": "absolute",
+          "value": 11
+        },
+        "newValue": {
+          "kind": "absolute",
+          "value": 12
+        },
+        "patch": "sample-season",
+        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "provenance": {
+          "sourceType": "official_patch_note",
+          "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+          "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
+          "effectiveFrom": "2026-08-12T00:00:00.000Z",
+          "confidence": 0.95,
+          "evidenceLevel": "explicit_absolute_value",
+          "evidence": "Sample patch note states body damage changed from 11 to 12."
+        }
+      }
+    ]
+  },
+  {
+    "id": "weapon.sample_spread.relative",
+    "name": "Sample weapon spread relative change",
+    "type": "weapon",
+    "aliases": ["spread sample", "拡散サンプル"],
+    "description": "Patch-dependent sample that preserves a relative change without inventing an absolute numeric value.",
+    "verifiedAt": "2026-08-12T00:00:00.000Z",
+    "patch": {
+      "mode": "patch_dependent",
+      "version": "sample-season",
+      "effectiveFrom": "2026-08-12T00:00:00.000Z"
+    },
+    "values": {
+      "spread": {
+        "kind": "relative_change",
+        "direction": "decrease"
+      }
+    },
+    "provenance": [
+      {
+        "sourceType": "official_patch_note",
+        "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+        "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
+        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "confidence": 0.7,
+        "evidenceLevel": "explicit_relative_change",
+        "evidence": "Sample patch note says spread decreased without publishing an absolute value."
+      }
+    ],
+    "fieldProvenance": {
+      "values.spread": {
+        "sourceType": "official_patch_note",
+        "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+        "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
+        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "confidence": 0.7,
+        "evidenceLevel": "explicit_relative_change",
+        "evidence": "Sample patch note says spread decreased without publishing an absolute value."
+      }
+    },
+    "changeEvents": [
+      {
+        "id": "sample-season-spread-decrease",
+        "fieldPath": "values.spread",
+        "changeType": "decrease",
+        "newValue": {
+          "kind": "relative_change",
+          "direction": "decrease"
+        },
+        "patch": "sample-season",
+        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "provenance": {
+          "sourceType": "official_patch_note",
+          "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+          "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
+          "effectiveFrom": "2026-08-12T00:00:00.000Z",
+          "confidence": 0.7,
+          "evidenceLevel": "explicit_relative_change",
+          "evidence": "Sample patch note says spread decreased without publishing an absolute value."
+        }
+      }
+    ]
+  }
+]
