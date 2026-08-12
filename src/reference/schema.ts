@@ -90,3 +90,4 @@ export const ReferenceCollectionSchema = z.array(ReferenceSchema);
 
 export type Reference = z.infer<typeof ReferenceSchema>;
 export type ReferenceCollection = z.infer<typeof ReferenceCollectionSchema>;
+export type ReferenceType = z.infer<typeof ReferenceTypeSchema>;

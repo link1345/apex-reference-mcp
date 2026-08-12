@@ -37,6 +37,22 @@ describe("reference data model", () => {
     expect(spread?.kind).toBe("relative_change");
     expect(spread).not.toHaveProperty("amount");
   });
+
+  test("searches references by English query, aliases, type, and limit", async () => {
+    const byName = await repository.searchReferences({ query: "shield battery" });
+    expect(byName[0]?.id).toBe("item.shield_battery");
+    expect(byName[0]?.source.sourceType).toBe("manual_verified");
+
+    const byAlias = await repository.searchReferences({ query: "バッテリー" });
+    expect(byAlias[0]?.id).toBe("item.shield_battery");
+
+    const weapons = await repository.searchReferences({ query: "sample", type: "weapon", maxResults: 1 });
+    expect(weapons).toHaveLength(1);
+    expect(weapons[0]?.type).toBe("weapon");
+
+    const noMatch = await repository.searchReferences({ query: "not-a-real-reference" });
+    expect(noMatch).toEqual([]);
+  });
 });
 
 describe("MCP server", () => {
@@ -63,6 +79,37 @@ describe("MCP server", () => {
     expect(content?.mimeType).toBe("application/json");
     expect(content).toHaveProperty("text");
     expect("text" in content! ? content.text : "").toContain("item.shield_battery");
+
+    await server.close();
+  });
+
+  test("exposes search_reference as an MCP tool", async () => {
+    const server = createApexReferenceServer(repository);
+    const client = new Client({ name: "test-client", version: "0.1.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    clients.push(client);
+
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const tools = await client.listTools();
+    expect(tools.tools.map((tool) => tool.name)).toContain("search_reference");
+
+    const result = await client.callTool({
+      name: "search_reference",
+      arguments: {
+        query: "R99",
+        type: "weapon",
+        maxResults: 5
+      }
+    });
+
+    const structuredContent = result.structuredContent as {
+      results?: Array<{ id: string; type: string; verifiedAt: string; source: unknown }>;
+    };
+    expect(structuredContent.results?.[0]?.id).toBe("weapon.r99_smg.damage");
+    expect(structuredContent.results?.[0]?.type).toBe("weapon");
+    expect(structuredContent.results?.[0]?.verifiedAt).toBe("2026-08-12T00:00:00.000Z");
+    expect(structuredContent.results?.[0]).toHaveProperty("source");
 
     await server.close();
   });

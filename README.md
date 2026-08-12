@@ -28,3 +28,17 @@ The schema distinguishes:
 - absolute values vs relative changes where no absolute value is known
 
 Relative changes intentionally preserve direction only and do not invent numeric values.
+
+## Tools
+
+### `search_reference`
+
+Searches local Reference records by `name`, `aliases`, `description`, and value keys.
+
+Input:
+
+- `query` required string
+- `type` optional filter: `weapon`, `legend`, `item`, or `mechanic`
+- `maxResults` optional result limit from 1 to 25
+
+Each result includes `id`, `name`, `type`, `summary`, `patch`, `verifiedAt`, `source`, and `score`, so a client can pass the returned `id` to a later detail lookup tool.
