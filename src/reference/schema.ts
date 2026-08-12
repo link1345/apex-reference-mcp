@@ -88,6 +88,28 @@ export const ReferenceSchema = z.object({
 
 export const ReferenceCollectionSchema = z.array(ReferenceSchema);
 
+export const ReferenceChangeCandidateSchema = z.object({
+  id: z.string().min(1),
+  referenceId: z.string().min(1).optional(),
+  referenceName: z.string().min(1),
+  type: ReferenceTypeSchema,
+  fieldPath: z.string().min(1),
+  changeType: z.enum(["set", "increase", "decrease", "add", "remove", "unknown"]),
+  oldValue: ReferenceValueSchema.optional(),
+  newValue: ReferenceValueSchema.optional(),
+  patch: z.string().min(1),
+  effectiveFrom: z.iso.datetime(),
+  source: ProvenanceSchema,
+  confidence: z.number().min(0).max(1),
+  evidence: z.string().min(1),
+  status: z.enum(["applicable", "new_entity", "review_required", "duplicate"]),
+  reviewReason: z.string().min(1).optional(),
+  approved: z.boolean().default(false)
+});
+
+export const ReferenceChangeCandidateCollectionSchema = z.array(ReferenceChangeCandidateSchema);
+
 export type Reference = z.infer<typeof ReferenceSchema>;
 export type ReferenceCollection = z.infer<typeof ReferenceCollectionSchema>;
 export type ReferenceType = z.infer<typeof ReferenceTypeSchema>;
+export type ReferenceChangeCandidate = z.infer<typeof ReferenceChangeCandidateSchema>;

@@ -1,10 +1,15 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ReferenceRepository } from "../src/reference/repository.js";
+import {
+  applyApprovedChangeCandidates,
+  extractReleaseNoteCandidates,
+  writeChangeCandidates
+} from "../src/reference/changePipeline.js";
 import { createApexReferenceServer } from "../src/server.js";
 
 const repository = new ReferenceRepository();
@@ -330,6 +335,135 @@ describe("MCP server", () => {
     });
 
     await server.close();
+  });
+});
+
+describe("release note change candidate pipeline", () => {
+  test("extracts reviewable candidates without writing to confirmed reference data", async () => {
+    const note = [
+      "R99: damage body 13 -> 14",
+      "weapon spread sample: spread decreased",
+      "Shield Battery: fast use added",
+      "Peacekeeper weapon: choke added",
+      "R99: hopup removed"
+    ].join("\n");
+
+    const before = await repository.getReference({ id: "weapon.r99_smg.damage" });
+    const candidates = await extractReleaseNoteCandidates({
+      inputText: note,
+      patch: "sample-season-3",
+      effectiveFrom: "2026-10-01T00:00:00.000Z",
+      sourceUrl: "https://www.ea.com/games/apex-legends/news/sample-season-3",
+      sourcePublishedAt: "2026-10-01T00:00:00.000Z"
+    });
+    const after = await repository.getReference({ id: "weapon.r99_smg.damage", version: "sample-season-3" });
+
+    expect(candidates).toHaveLength(5);
+    expect(candidates.map((candidate) => candidate.status)).toContain("new_entity");
+    expect(candidates.map((candidate) => candidate.changeType)).toEqual(["set", "decrease", "add", "add", "remove"]);
+    expect(candidates[0]).toMatchObject({
+      referenceId: "weapon.r99_smg.damage",
+      fieldPath: "values.damage.body",
+      oldValue: { kind: "absolute", value: 13 },
+      newValue: { kind: "absolute", value: 14 },
+      source: {
+        sourceType: "official_patch_note",
+        sourceUrl: "https://www.ea.com/games/apex-legends/news/sample-season-3"
+      }
+    });
+    expect(candidates[1]?.newValue).toEqual({
+      kind: "relative_change",
+      direction: "decrease"
+    });
+    expect(candidates[1]?.newValue).not.toHaveProperty("amount");
+    expect(candidates[3]).toMatchObject({
+      type: "weapon",
+      status: "new_entity"
+    });
+    expect(candidates[4]).toMatchObject({
+      changeType: "remove",
+      newValue: {
+        kind: "relative_change",
+        direction: "remove"
+      }
+    });
+    expect(before.found ? before.reference.values["damage.body"] : undefined).toEqual({
+      kind: "absolute",
+      value: 13
+    });
+    expect(after.found).toBe(false);
+  });
+
+  test("marks mismatched old values for review instead of applying them", async () => {
+    const candidates = await extractReleaseNoteCandidates({
+      inputText: "R99: damage body 99 -> 15",
+      patch: "sample-conflict",
+      effectiveFrom: "2026-10-15T00:00:00.000Z"
+    });
+
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0]).toMatchObject({
+      status: "review_required",
+      reviewReason: "oldValue does not match the latest known Reference value"
+    });
+  });
+
+  test("applies only approved candidates and then suppresses duplicate generation", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "apex-reference-changes-"));
+    const referenceFilePath = join(tempDir, "sample.json");
+    const pendingPath = join(tempDir, "pending.candidates");
+
+    try {
+      await writeFile(referenceFilePath, await readFile(join(process.cwd(), "data", "references", "sample.json"), "utf8"));
+      const tempRepository = new ReferenceRepository(tempDir);
+      const candidates = await extractReleaseNoteCandidates({
+        repository: tempRepository,
+        inputText: "R99: damage body 13 -> 14",
+        patch: "sample-season-3",
+        effectiveFrom: "2026-10-01T00:00:00.000Z",
+        sourceUrl: "https://www.ea.com/games/apex-legends/news/sample-season-3"
+      });
+
+      const approvedCandidates = candidates.map((candidate) => ({
+        ...candidate,
+        approved: true
+      }));
+      await writeChangeCandidates(pendingPath, approvedCandidates);
+      const result = await applyApprovedChangeCandidates({
+        candidates: approvedCandidates,
+        referenceFilePath
+      });
+      const afterRepository = new ReferenceRepository(tempDir);
+      const resolved = await afterRepository.getReference({
+        id: "weapon.r99_smg.damage",
+        version: "sample-season-3"
+      });
+      const duplicateCandidates = await extractReleaseNoteCandidates({
+        repository: afterRepository,
+        inputText: "R99: damage body 13 -> 14",
+        patch: "sample-season-3",
+        effectiveFrom: "2026-10-01T00:00:00.000Z",
+        sourceUrl: "https://www.ea.com/games/apex-legends/news/sample-season-3"
+      });
+
+      expect(JSON.parse(await readFile(pendingPath, "utf8"))[0]).toHaveProperty("approved", true);
+      expect(result).toEqual({
+        applied: 1,
+        skipped: 0,
+        referenceCount: 3
+      });
+      expect(resolved.found).toBe(true);
+      expect(resolved.found ? resolved.reference.values["damage.body"] : undefined).toEqual({
+        kind: "absolute",
+        value: 14
+      });
+      expect(duplicateCandidates[0]).toMatchObject({
+        status: "duplicate",
+        reviewReason: "matching change event already exists in Reference history"
+      });
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   });
 });
 

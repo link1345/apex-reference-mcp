@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "bun run src/index.ts",
+    "changes:extract": "bun run src/reference/changePipelineCli.ts extract",
+    "changes:approve": "bun run src/reference/changePipelineCli.ts approve",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

@@ -13,6 +13,8 @@ bun install
 bun run typecheck
 bun test
 bun run start
+bun run changes:extract -- --input ./release-note.md --output ./data/changes/pending/release-note.json --patch sample-season --effectiveFrom 2026-08-12T00:00:00.000Z --sourceUrl https://www.ea.com/games/apex-legends/news/example
+bun run changes:approve -- --candidates ./data/changes/pending/release-note.json --references ./data/references/sample.json
 ```
 
 `bun run start` launches a stdio MCP server.
@@ -29,6 +31,19 @@ The schema distinguishes:
 - baseline values vs chronological change events for patch-dependent records
 
 Relative changes intentionally preserve direction only and do not invent numeric values.
+
+## Release Note Change Pipeline
+
+`bun run changes:extract` reads saved official release note text, Markdown, or copied HTML text and writes reviewable change candidates to a pending JSON file. The extractor recognizes explicit numeric changes such as `13 -> 14`, additions, removals, and relative changes such as `increased` or `decreased`.
+
+Candidate records include the target Reference candidate, type, field path, old/new values when stated, change type, patch, effective timestamp, source/provenance, confidence, evidence text, and a status:
+
+- `applicable`: matches an existing Reference and can be reviewed for approval.
+- `new_entity`: no existing Reference matched the entity.
+- `review_required`: the candidate conflicts with the latest known Reference value.
+- `duplicate`: the same source/patch/entity/field change already exists or was generated in the same run.
+
+Extraction never writes candidates into confirmed Reference records. Humans approve candidates by setting `approved: true` in the pending JSON. `bun run changes:approve` applies only approved, applicable candidates as `changeEvents`; skipped candidates remain out of the static Reference data. The resulting events are resolved by `get_reference` and `get_reference_history`.
 
 ## Tools
 
