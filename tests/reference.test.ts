@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { ReferenceRepository } from "../src/reference/repository.js";
 import { createApexReferenceServer } from "../src/server.js";
 
@@ -52,6 +55,65 @@ describe("reference data model", () => {
 
     const noMatch = await repository.searchReferences({ query: "not-a-real-reference" });
     expect(noMatch).toEqual([]);
+  });
+
+  test("gets complete references by id and exact name plus type", async () => {
+    const byId = await repository.getReference({ id: "item.shield_battery" });
+    expect(byId.found).toBe(true);
+    expect(byId.found ? byId.resolvedBy : "").toBe("id");
+    expect(byId.found ? byId.reference : undefined).toMatchObject({
+      id: "item.shield_battery",
+      type: "item",
+      verifiedAt: "2026-08-12T00:00:00.000Z",
+      patch: {
+        mode: "stable"
+      }
+    });
+
+    const byName = await repository.getReference({ name: "R99", type: "weapon" });
+    expect(byName.found).toBe(true);
+    expect(byName.found ? byName.resolvedBy : "").toBe("name_type");
+    expect(byName.found ? byName.reference.id : "").toBe("weapon.r99_smg.damage");
+    expect(byName.found ? byName.reference.provenance[0]?.sourceType : "").toBe("official_patch_note");
+  });
+
+  test("returns explicit lookup errors and ambiguity candidates", async () => {
+    const notFound = await repository.getReference({ id: "item.not_real" });
+    expect(notFound).toEqual({
+      found: false,
+      reason: "reference_not_found",
+      candidates: []
+    });
+
+    const missingType = await repository.getReference({ name: "Shield Battery" });
+    expect(missingType).toEqual({
+      found: false,
+      reason: "type_required_with_name",
+      candidates: []
+    });
+
+    const tempDir = await mkdtemp(join(tmpdir(), "apex-reference-"));
+    try {
+      await writeFile(
+        join(tempDir, "ambiguous.json"),
+        JSON.stringify([
+          makeTestReference("item.duplicate.one", "Duplicate Item"),
+          makeTestReference("item.duplicate.two", "Duplicate Item")
+        ])
+      );
+
+      const ambiguousRepository = new ReferenceRepository(tempDir);
+      const ambiguous = await ambiguousRepository.getReference({ name: "Duplicate Item", type: "item" });
+
+      expect(ambiguous.found).toBe(false);
+      expect(ambiguous.found ? "" : ambiguous.reason).toBe("ambiguous_reference");
+      expect(ambiguous.found ? [] : ambiguous.candidates.map((candidate) => candidate.id)).toEqual([
+        "item.duplicate.one",
+        "item.duplicate.two"
+      ]);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   });
 });
 
@@ -113,4 +175,77 @@ describe("MCP server", () => {
 
     await server.close();
   });
+
+  test("exposes get_reference with structured output", async () => {
+    const server = createApexReferenceServer(repository);
+    const client = new Client({ name: "test-client", version: "0.1.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    clients.push(client);
+
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+
+    const tools = await client.listTools();
+    expect(tools.tools.map((tool) => tool.name)).toContain("get_reference");
+
+    const result = await client.callTool({
+      name: "get_reference",
+      arguments: {
+        id: "weapon.r99_smg.damage"
+      }
+    });
+
+    const structuredContent = result.structuredContent as {
+      found?: boolean;
+      resolvedBy?: string;
+      reference?: { id?: string; type?: string; verifiedAt?: string; patch?: unknown; source?: unknown };
+    };
+    expect(structuredContent.found).toBe(true);
+    expect(structuredContent.resolvedBy).toBe("id");
+    expect(structuredContent.reference).toMatchObject({
+      id: "weapon.r99_smg.damage",
+      type: "weapon",
+      verifiedAt: "2026-08-12T00:00:00.000Z"
+    });
+    expect(structuredContent.reference).toHaveProperty("patch");
+
+    const missing = await client.callTool({
+      name: "get_reference",
+      arguments: {
+        id: "weapon.nope"
+      }
+    });
+    expect(missing.structuredContent).toEqual({
+      found: false,
+      reason: "reference_not_found",
+      candidates: []
+    });
+
+    await server.close();
+  });
 });
+
+function makeTestReference(id: string, name: string) {
+  return {
+    id,
+    name,
+    type: "item",
+    aliases: [],
+    description: "Temporary duplicate reference for lookup tests.",
+    verifiedAt: "2026-08-12T00:00:00.000Z",
+    patch: {
+      mode: "stable"
+    },
+    values: {},
+    provenance: [
+      {
+        sourceType: "manual_verified",
+        sourceId: "test",
+        confidence: 1,
+        evidenceLevel: "manual_confirmation",
+        evidence: "Test fixture."
+      }
+    ],
+    fieldProvenance: {},
+    changeEvents: []
+  };
+}

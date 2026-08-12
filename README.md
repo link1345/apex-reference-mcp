@@ -42,3 +42,15 @@ Input:
 - `maxResults` optional result limit from 1 to 25
 
 Each result includes `id`, `name`, `type`, `summary`, `patch`, `verifiedAt`, `source`, and `score`, so a client can pass the returned `id` to a later detail lookup tool.
+
+### `get_reference`
+
+Gets one complete Reference record.
+
+Input:
+
+- `id` optional Reference ID. When present, this is used directly.
+- `name` optional exact name or alias.
+- `type` optional filter required when resolving by `name`: `weapon`, `legend`, `item`, or `mechanic`.
+
+Successful responses include `found: true`, `resolvedBy`, and the full `reference` record with `source`/`provenance`, `verifiedAt`, and `patch` metadata. Missing IDs, missing `type` for name lookup, and ambiguous name/type matches return `found: false` with a machine-readable `reason`; ambiguous lookups also include candidate records.

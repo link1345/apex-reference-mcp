@@ -23,6 +23,33 @@ export type ReferenceSearchOptions = {
   maxResults?: number;
 };
 
+export type ReferenceLookupCandidate = {
+  id: string;
+  name: string;
+  type: ReferenceType;
+  patch: Reference["patch"];
+  verifiedAt: string;
+  source: Reference["provenance"][number];
+};
+
+export type ReferenceLookupResult =
+  | {
+      found: true;
+      resolvedBy: "id" | "name_type";
+      reference: Reference;
+    }
+  | {
+      found: false;
+      reason: "missing_identifier" | "type_required_with_name" | "reference_not_found" | "ambiguous_reference";
+      candidates: ReferenceLookupCandidate[];
+    };
+
+export type ReferenceLookupOptions = {
+  id?: string;
+  name?: string;
+  type?: ReferenceType;
+};
+
 export class ReferenceRepository {
   constructor(private readonly dataDir = defaultDataDir) {}
 
@@ -44,6 +71,48 @@ export class ReferenceRepository {
   async getReferenceById(id: string): Promise<Reference | undefined> {
     const references = await this.listReferences();
     return references.find((reference) => reference.id === id);
+  }
+
+  async getReference(options: ReferenceLookupOptions): Promise<ReferenceLookupResult> {
+    const id = options.id?.trim();
+    const name = options.name?.trim();
+
+    if (id !== undefined && id.length > 0) {
+      const reference = await this.getReferenceById(id);
+
+      if (reference !== undefined) {
+        return { found: true, resolvedBy: "id", reference };
+      }
+
+      return { found: false, reason: "reference_not_found", candidates: [] };
+    }
+
+    if (name === undefined || name.length === 0) {
+      return { found: false, reason: "missing_identifier", candidates: [] };
+    }
+
+    if (options.type === undefined) {
+      return { found: false, reason: "type_required_with_name", candidates: [] };
+    }
+
+    const normalizedName = normalizeSearchText(name);
+    const references = await this.listReferences();
+    const matches = references.filter(
+      (reference) =>
+        reference.type === options.type &&
+        (normalizeSearchText(reference.name) === normalizedName ||
+          reference.aliases.some((alias) => normalizeSearchText(alias) === normalizedName))
+    );
+
+    if (matches.length === 1) {
+      return { found: true, resolvedBy: "name_type", reference: matches[0]! };
+    }
+
+    if (matches.length > 1) {
+      return { found: false, reason: "ambiguous_reference", candidates: matches.map(toLookupCandidate) };
+    }
+
+    return { found: false, reason: "reference_not_found", candidates: [] };
   }
 
   async searchReferences(options: ReferenceSearchOptions): Promise<ReferenceSearchResult[]> {
@@ -75,6 +144,17 @@ export class ReferenceRepository {
       .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id))
       .slice(0, maxResults);
   }
+}
+
+function toLookupCandidate(reference: Reference): ReferenceLookupCandidate {
+  return {
+    id: reference.id,
+    name: reference.name,
+    type: reference.type,
+    patch: reference.patch,
+    verifiedAt: reference.verifiedAt,
+    source: reference.provenance[0]!
+  };
 }
 
 function scoreReference(reference: Reference, query: string, queryTokens: string[]): number {

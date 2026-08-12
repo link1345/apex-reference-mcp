@@ -68,5 +68,44 @@ export function createApexReferenceServer(repository = new ReferenceRepository()
     }
   );
 
+  server.registerTool(
+    "get_reference",
+    {
+      title: "Get APEX reference",
+      description: "Get a complete APEX reference record by id, or by exact name/alias plus type.",
+      inputSchema: {
+        id: z.string().min(1).optional(),
+        name: z.string().min(1).optional(),
+        type: ReferenceTypeSchema.optional()
+      },
+      outputSchema: {
+        found: z.boolean(),
+        resolvedBy: z.enum(["id", "name_type"]).optional(),
+        reason: z.enum(["missing_identifier", "type_required_with_name", "reference_not_found", "ambiguous_reference"]).optional(),
+        reference: z.unknown().optional(),
+        candidates: z.array(z.object({
+          id: z.string(),
+          name: z.string(),
+          type: ReferenceTypeSchema,
+          patch: z.unknown(),
+          verifiedAt: z.string(),
+          source: z.unknown()
+        })).optional()
+      }
+    },
+    async ({ id, name, type }) => {
+      const result = await repository.getReference({ id, name, type });
+      return {
+        structuredContent: result,
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
   return server;
 }
