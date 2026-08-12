@@ -26,6 +26,7 @@ The schema distinguishes:
 - stable facts vs patch-dependent facts
 - official patch note, official document, manual verification, and derived provenance
 - absolute values vs relative changes where no absolute value is known
+- baseline values vs chronological change events for patch-dependent records
 
 Relative changes intentionally preserve direction only and do not invent numeric values.
 
@@ -52,5 +53,23 @@ Input:
 - `id` optional Reference ID. When present, this is used directly.
 - `name` optional exact name or alias.
 - `type` optional filter required when resolving by `name`: `weapon`, `legend`, `item`, or `mechanic`.
+- `version` optional exact patch/version label.
+- `patch` optional alias for `version`.
+- `at` optional ISO timestamp used to resolve the Reference valid at that time.
+- `includeHistory` optional boolean to include chronological change events with the resolved Reference.
 
-Successful responses include `found: true`, `resolvedBy`, and the full `reference` record with `source`/`provenance`, `verifiedAt`, and `patch` metadata. Missing IDs, missing `type` for name lookup, and ambiguous name/type matches return `found: false` with a machine-readable `reason`; ambiguous lookups also include candidate records.
+Successful responses include `found: true`, `resolvedBy`, and the full `reference` record with `source`/`provenance`, `verifiedAt`, and `patch` metadata. When no version selector is provided, patch-dependent records resolve to the latest known version. Missing IDs, missing `type` for name lookup, missing versions, and ambiguous name/type matches return `found: false` with a machine-readable `reason`; ambiguous lookups also include candidate records.
+
+For patch-dependent records, the server applies `changeEvents` in chronological order to the baseline values. Explicit `oldValue`/`newValue` changes such as `11 -> 12` become absolute values for the resolved version. Relative changes without absolute values remain `relative_change` values and are not converted into invented numbers.
+
+### `get_reference_history`
+
+Gets chronological change history for one Reference record.
+
+Input:
+
+- `id` optional Reference ID. When present, this is used directly.
+- `name` optional exact name or alias.
+- `type` optional filter required when resolving by `name`: `weapon`, `legend`, `item`, or `mechanic`.
+
+Successful responses include `found: true`, `resolvedBy`, and `history` with the baseline patch and ordered `events`.

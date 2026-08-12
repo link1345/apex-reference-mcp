@@ -44,35 +44,36 @@
     "verifiedAt": "2026-08-12T00:00:00.000Z",
     "patch": {
       "mode": "patch_dependent",
-      "version": "sample-season",
-      "effectiveFrom": "2026-08-12T00:00:00.000Z"
+      "version": "sample-preseason",
+      "effectiveFrom": "2026-07-01T00:00:00.000Z",
+      "effectiveTo": "2026-08-12T00:00:00.000Z"
     },
     "values": {
       "damage.body": {
         "kind": "absolute",
-        "value": 12
+        "value": 11
       }
     },
     "provenance": [
       {
         "sourceType": "official_patch_note",
         "sourceUrl": "https://www.ea.com/games/apex-legends/news",
-        "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
-        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "sourcePublishedAt": "2026-07-01T00:00:00.000Z",
+        "effectiveFrom": "2026-07-01T00:00:00.000Z",
         "confidence": 0.95,
         "evidenceLevel": "explicit_absolute_value",
-        "evidence": "Sample patch note states body damage changed from 11 to 12."
+        "evidence": "Sample baseline states body damage was 11 before later changes."
       }
     ],
     "fieldProvenance": {
       "values.damage.body": {
         "sourceType": "official_patch_note",
         "sourceUrl": "https://www.ea.com/games/apex-legends/news",
-        "sourcePublishedAt": "2026-08-12T00:00:00.000Z",
-        "effectiveFrom": "2026-08-12T00:00:00.000Z",
+        "sourcePublishedAt": "2026-07-01T00:00:00.000Z",
+        "effectiveFrom": "2026-07-01T00:00:00.000Z",
         "confidence": 0.95,
         "evidenceLevel": "explicit_absolute_value",
-        "evidence": "Sample patch note states body damage changed from 11 to 12."
+        "evidence": "Sample baseline states body damage was 11 before later changes."
       }
     },
     "changeEvents": [
@@ -98,6 +99,30 @@
           "confidence": 0.95,
           "evidenceLevel": "explicit_absolute_value",
           "evidence": "Sample patch note states body damage changed from 11 to 12."
+        }
+      },
+      {
+        "id": "sample-season-2-r99-body-damage",
+        "fieldPath": "values.damage.body",
+        "changeType": "set",
+        "oldValue": {
+          "kind": "absolute",
+          "value": 12
+        },
+        "newValue": {
+          "kind": "absolute",
+          "value": 13
+        },
+        "patch": "sample-season-2",
+        "effectiveFrom": "2026-09-01T00:00:00.000Z",
+        "provenance": {
+          "sourceType": "official_patch_note",
+          "sourceUrl": "https://www.ea.com/games/apex-legends/news",
+          "sourcePublishedAt": "2026-09-01T00:00:00.000Z",
+          "effectiveFrom": "2026-09-01T00:00:00.000Z",
+          "confidence": 0.95,
+          "evidenceLevel": "explicit_absolute_value",
+          "evidence": "Sample patch note states body damage changed from 12 to 13."
         }
       }
     ]

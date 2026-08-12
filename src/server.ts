@@ -72,7 +72,57 @@ export function createApexReferenceServer(repository = new ReferenceRepository()
     "get_reference",
     {
       title: "Get APEX reference",
-      description: "Get a complete APEX reference record by id, or by exact name/alias plus type.",
+      description: "Get a complete APEX reference record by id, or by exact name/alias plus type, optionally for a patch/version or timestamp.",
+      inputSchema: {
+        id: z.string().min(1).optional(),
+        name: z.string().min(1).optional(),
+        type: ReferenceTypeSchema.optional(),
+        version: z.string().min(1).optional(),
+        patch: z.string().min(1).optional(),
+        at: z.string().min(1).optional(),
+        includeHistory: z.boolean().optional()
+      },
+      outputSchema: {
+        found: z.boolean(),
+        resolvedBy: z.enum(["id", "name_type"]).optional(),
+        reason: z.enum([
+          "missing_identifier",
+          "type_required_with_name",
+          "reference_not_found",
+          "ambiguous_reference",
+          "version_not_found"
+        ]).optional(),
+        reference: z.unknown().optional(),
+        history: z.unknown().optional(),
+        candidates: z.array(z.object({
+          id: z.string(),
+          name: z.string(),
+          type: ReferenceTypeSchema,
+          patch: z.unknown(),
+          verifiedAt: z.string(),
+          source: z.unknown()
+        })).optional()
+      }
+    },
+    async ({ id, name, type, version, patch, at, includeHistory }) => {
+      const result = await repository.getReference({ id, name, type, version, patch, at, includeHistory });
+      return {
+        structuredContent: result,
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(result, null, 2)
+          }
+        ]
+      };
+    }
+  );
+
+  server.registerTool(
+    "get_reference_history",
+    {
+      title: "Get APEX reference history",
+      description: "Get chronological change events for a Reference record by id, or by exact name/alias plus type.",
       inputSchema: {
         id: z.string().min(1).optional(),
         name: z.string().min(1).optional(),
@@ -82,7 +132,7 @@ export function createApexReferenceServer(repository = new ReferenceRepository()
         found: z.boolean(),
         resolvedBy: z.enum(["id", "name_type"]).optional(),
         reason: z.enum(["missing_identifier", "type_required_with_name", "reference_not_found", "ambiguous_reference"]).optional(),
-        reference: z.unknown().optional(),
+        history: z.unknown().optional(),
         candidates: z.array(z.object({
           id: z.string(),
           name: z.string(),
@@ -94,7 +144,7 @@ export function createApexReferenceServer(repository = new ReferenceRepository()
       }
     },
     async ({ id, name, type }) => {
-      const result = await repository.getReference({ id, name, type });
+      const result = await repository.getReferenceHistory({ id, name, type });
       return {
         structuredContent: result,
         content: [

@@ -37,10 +37,16 @@ export type ReferenceLookupResult =
       found: true;
       resolvedBy: "id" | "name_type";
       reference: Reference;
+      history?: ReferenceHistory;
     }
   | {
       found: false;
-      reason: "missing_identifier" | "type_required_with_name" | "reference_not_found" | "ambiguous_reference";
+      reason:
+        | "missing_identifier"
+        | "type_required_with_name"
+        | "reference_not_found"
+        | "ambiguous_reference"
+        | "version_not_found";
       candidates: ReferenceLookupCandidate[];
     };
 
@@ -48,6 +54,35 @@ export type ReferenceLookupOptions = {
   id?: string;
   name?: string;
   type?: ReferenceType;
+  version?: string;
+  patch?: string;
+  at?: string;
+  includeHistory?: boolean;
+};
+
+export type ReferenceHistory = {
+  id: string;
+  name: string;
+  type: ReferenceType;
+  basePatch: Reference["patch"];
+  events: Reference["changeEvents"];
+};
+
+export type ReferenceHistoryResult =
+  | {
+      found: true;
+      resolvedBy: "id" | "name_type";
+      history: ReferenceHistory;
+    }
+  | {
+      found: false;
+      reason: "missing_identifier" | "type_required_with_name" | "reference_not_found" | "ambiguous_reference";
+      candidates: ReferenceLookupCandidate[];
+    };
+
+type VersionSelector = {
+  version?: string;
+  at?: Date;
 };
 
 export class ReferenceRepository {
@@ -74,6 +109,57 @@ export class ReferenceRepository {
   }
 
   async getReference(options: ReferenceLookupOptions): Promise<ReferenceLookupResult> {
+    const selector = toVersionSelector(options);
+    if (selector === undefined) {
+      return { found: false, reason: "version_not_found", candidates: [] };
+    }
+
+    const identityResult = await this.resolveReferenceIdentity(options);
+
+    if (!identityResult.found) {
+      return identityResult;
+    }
+
+    const versionedReference = resolveReferenceVersion(identityResult.reference, selector);
+
+    if (versionedReference === undefined) {
+      return { found: false, reason: "version_not_found", candidates: [toLookupCandidate(identityResult.reference)] };
+    }
+
+    return {
+      found: true,
+      resolvedBy: identityResult.resolvedBy,
+      reference: versionedReference,
+      ...(options.includeHistory === true ? { history: toHistory(identityResult.reference) } : {})
+    };
+  }
+
+  async getReferenceHistory(options: ReferenceLookupOptions): Promise<ReferenceHistoryResult> {
+    const identityResult = await this.resolveReferenceIdentity(options);
+
+    if (!identityResult.found) {
+      return identityResult;
+    }
+
+    return {
+      found: true,
+      resolvedBy: identityResult.resolvedBy,
+      history: toHistory(identityResult.reference)
+    };
+  }
+
+  private async resolveReferenceIdentity(options: ReferenceLookupOptions): Promise<
+    | {
+        found: true;
+        resolvedBy: "id" | "name_type";
+        reference: Reference;
+      }
+    | {
+        found: false;
+        reason: "missing_identifier" | "type_required_with_name" | "reference_not_found" | "ambiguous_reference";
+        candidates: ReferenceLookupCandidate[];
+      }
+  > {
     const id = options.id?.trim();
     const name = options.name?.trim();
 
@@ -128,15 +214,16 @@ export class ReferenceRepository {
     return references
       .filter((reference) => options.type === undefined || reference.type === options.type)
       .map((reference) => {
-        const score = scoreReference(reference, query, queryTokens);
+        const latestReference = resolveReferenceVersion(reference, {}) ?? reference;
+        const score = scoreReference(latestReference, query, queryTokens);
         return {
-          id: reference.id,
-          name: reference.name,
-          type: reference.type,
-          summary: reference.description,
-          patch: reference.patch,
-          verifiedAt: reference.verifiedAt,
-          source: reference.provenance[0]!,
+          id: latestReference.id,
+          name: latestReference.name,
+          type: latestReference.type,
+          summary: latestReference.description,
+          patch: latestReference.patch,
+          verifiedAt: latestReference.verifiedAt,
+          source: latestReference.provenance.at(-1)!,
           score
         };
       })
@@ -144,6 +231,104 @@ export class ReferenceRepository {
       .sort((left, right) => right.score - left.score || left.id.localeCompare(right.id))
       .slice(0, maxResults);
   }
+}
+
+function toVersionSelector(options: ReferenceLookupOptions): VersionSelector | undefined {
+  const version = options.version?.trim() ?? options.patch?.trim();
+  const at = options.at?.trim();
+
+  if (at === undefined || at.length === 0) {
+    return { version: version !== undefined && version.length > 0 ? version : undefined };
+  }
+
+  const timestamp = new Date(at);
+  if (Number.isNaN(timestamp.valueOf())) {
+    return undefined;
+  }
+
+  return { version: version !== undefined && version.length > 0 ? version : undefined, at: timestamp };
+}
+
+function resolveReferenceVersion(reference: Reference, selector: VersionSelector): Reference | undefined {
+  if (reference.patch.mode === "stable") {
+    return selector.version === undefined ? cloneReference(reference) : undefined;
+  }
+
+  const baseEffectiveFrom = new Date(reference.patch.effectiveFrom);
+  if (selector.at !== undefined && selector.at < baseEffectiveFrom) {
+    return undefined;
+  }
+
+  const events = reference.changeEvents
+    .slice()
+    .sort((left, right) => left.effectiveFrom.localeCompare(right.effectiveFrom) || left.id.localeCompare(right.id));
+
+  if (selector.version !== undefined) {
+    if (selector.version === reference.patch.version) {
+      return cloneReference(reference);
+    }
+
+    const eventIndex = events.findIndex((event) => event.patch === selector.version);
+    if (eventIndex === -1) {
+      return undefined;
+    }
+
+    return applyChangeEvents(reference, events.slice(0, eventIndex + 1));
+  }
+
+  if (selector.at !== undefined) {
+    const matchingEvents = events.filter((event) => new Date(event.effectiveFrom) <= selector.at!);
+    return applyChangeEvents(reference, matchingEvents);
+  }
+
+  return applyChangeEvents(reference, events);
+}
+
+function applyChangeEvents(reference: Reference, events: Reference["changeEvents"]): Reference {
+  const versioned = cloneReference(reference);
+
+  for (const event of events) {
+    const valueKey = toValueKey(event.fieldPath);
+    const nextValue = event.newValue ?? event.oldValue;
+
+    if (nextValue !== undefined) {
+      versioned.values[valueKey] = nextValue;
+      versioned.fieldProvenance[`values.${valueKey}`] = event.provenance;
+    }
+
+    versioned.patch = {
+      mode: "patch_dependent",
+      version: event.patch,
+      effectiveFrom: event.effectiveFrom,
+      effectiveTo: null
+    };
+  }
+
+  if (events.length > 0) {
+    versioned.provenance = [...versioned.provenance, ...events.map((event) => event.provenance)];
+  }
+
+  return versioned;
+}
+
+function toValueKey(fieldPath: string): string {
+  return fieldPath.startsWith("values.") ? fieldPath.slice("values.".length) : fieldPath;
+}
+
+function toHistory(reference: Reference): ReferenceHistory {
+  return {
+    id: reference.id,
+    name: reference.name,
+    type: reference.type,
+    basePatch: reference.patch,
+    events: reference.changeEvents
+      .slice()
+      .sort((left, right) => left.effectiveFrom.localeCompare(right.effectiveFrom) || left.id.localeCompare(right.id))
+  };
+}
+
+function cloneReference(reference: Reference): Reference {
+  return structuredClone(reference);
 }
 
 function toLookupCandidate(reference: Reference): ReferenceLookupCandidate {

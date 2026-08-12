@@ -30,7 +30,7 @@ describe("reference data model", () => {
     const reference = await repository.getReferenceById("weapon.r99_smg.damage");
 
     expect(reference?.fieldProvenance["values.damage.body"]?.sourceType).toBe("official_patch_note");
-    expect(reference?.fieldProvenance["values.damage.body"]?.effectiveFrom).toBe("2026-08-12T00:00:00.000Z");
+    expect(reference?.fieldProvenance["values.damage.body"]?.effectiveFrom).toBe("2026-07-01T00:00:00.000Z");
   });
 
   test("keeps relative changes without inventing absolute numbers", async () => {
@@ -75,6 +75,91 @@ describe("reference data model", () => {
     expect(byName.found ? byName.resolvedBy : "").toBe("name_type");
     expect(byName.found ? byName.reference.id : "").toBe("weapon.r99_smg.damage");
     expect(byName.found ? byName.reference.provenance[0]?.sourceType : "").toBe("official_patch_note");
+  });
+
+  test("resolves latest and historical patch-dependent references", async () => {
+    const latest = await repository.getReference({ id: "weapon.r99_smg.damage" });
+    expect(latest.found).toBe(true);
+    expect(latest.found ? latest.reference.patch : undefined).toMatchObject({
+      mode: "patch_dependent",
+      version: "sample-season-2"
+    });
+    expect(latest.found ? latest.reference.values["damage.body"] : undefined).toEqual({
+      kind: "absolute",
+      value: 13
+    });
+
+    const baseline = await repository.getReference({ id: "weapon.r99_smg.damage", version: "sample-preseason" });
+    expect(baseline.found).toBe(true);
+    expect(baseline.found ? baseline.reference.values["damage.body"] : undefined).toEqual({
+      kind: "absolute",
+      value: 11
+    });
+
+    const firstPatch = await repository.getReference({ id: "weapon.r99_smg.damage", patch: "sample-season" });
+    expect(firstPatch.found).toBe(true);
+    expect(firstPatch.found ? firstPatch.reference.values["damage.body"] : undefined).toEqual({
+      kind: "absolute",
+      value: 12
+    });
+
+    const byDate = await repository.getReference({
+      id: "weapon.r99_smg.damage",
+      at: "2026-08-15T00:00:00.000Z"
+    });
+    expect(byDate.found).toBe(true);
+    expect(byDate.found ? byDate.reference.patch : undefined).toMatchObject({
+      mode: "patch_dependent",
+      version: "sample-season"
+    });
+    expect(byDate.found ? byDate.reference.values["damage.body"] : undefined).toEqual({
+      kind: "absolute",
+      value: 12
+    });
+  });
+
+  test("does not fall back to another version when the requested version is absent", async () => {
+    const missingVersion = await repository.getReference({
+      id: "weapon.r99_smg.damage",
+      version: "not-a-real-patch"
+    });
+
+    expect(missingVersion.found).toBe(false);
+    expect(missingVersion.found ? "" : missingVersion.reason).toBe("version_not_found");
+
+    const beforeBaseline = await repository.getReference({
+      id: "weapon.r99_smg.damage",
+      at: "2026-01-01T00:00:00.000Z"
+    });
+    expect(beforeBaseline.found).toBe(false);
+    expect(beforeBaseline.found ? "" : beforeBaseline.reason).toBe("version_not_found");
+  });
+
+  test("returns chronological history and keeps relative changes as relative", async () => {
+    const withHistory = await repository.getReference({
+      id: "weapon.r99_smg.damage",
+      includeHistory: true
+    });
+    expect(withHistory.found).toBe(true);
+    expect(withHistory.found ? withHistory.history?.events.map((event) => event.patch) : []).toEqual([
+      "sample-season",
+      "sample-season-2"
+    ]);
+
+    const history = await repository.getReferenceHistory({ id: "weapon.r99_smg.damage" });
+    expect(history.found).toBe(true);
+    expect(history.found ? history.history.events : []).toHaveLength(2);
+    expect(history.found ? history.history.events[0]?.oldValue : undefined).toEqual({
+      kind: "absolute",
+      value: 11
+    });
+
+    const relative = await repository.getReference({ id: "weapon.sample_spread.relative" });
+    expect(relative.found).toBe(true);
+    expect(relative.found ? relative.reference.values.spread : undefined).toEqual({
+      kind: "relative_change",
+      direction: "decrease"
+    });
   });
 
   test("returns explicit lookup errors and ambiguity candidates", async () => {
@@ -186,18 +271,20 @@ describe("MCP server", () => {
 
     const tools = await client.listTools();
     expect(tools.tools.map((tool) => tool.name)).toContain("get_reference");
+    expect(tools.tools.map((tool) => tool.name)).toContain("get_reference_history");
 
     const result = await client.callTool({
       name: "get_reference",
       arguments: {
-        id: "weapon.r99_smg.damage"
+        id: "weapon.r99_smg.damage",
+        version: "sample-season"
       }
     });
 
     const structuredContent = result.structuredContent as {
       found?: boolean;
       resolvedBy?: string;
-      reference?: { id?: string; type?: string; verifiedAt?: string; patch?: unknown; source?: unknown };
+      reference?: { id?: string; type?: string; verifiedAt?: string; patch?: { version?: string }; values?: Record<string, unknown> };
     };
     expect(structuredContent.found).toBe(true);
     expect(structuredContent.resolvedBy).toBe("id");
@@ -206,18 +293,40 @@ describe("MCP server", () => {
       type: "weapon",
       verifiedAt: "2026-08-12T00:00:00.000Z"
     });
-    expect(structuredContent.reference).toHaveProperty("patch");
+    expect(structuredContent.reference?.patch?.version).toBe("sample-season");
+    expect(structuredContent.reference?.values?.["damage.body"]).toEqual({
+      kind: "absolute",
+      value: 12
+    });
+
+    const history = await client.callTool({
+      name: "get_reference_history",
+      arguments: {
+        id: "weapon.r99_smg.damage"
+      }
+    });
+    const historyContent = history.structuredContent as {
+      found?: boolean;
+      history?: { events?: Array<{ patch?: string }> };
+    };
+    expect(historyContent.found).toBe(true);
+    expect(historyContent.history?.events?.map((event) => event.patch)).toEqual(["sample-season", "sample-season-2"]);
 
     const missing = await client.callTool({
       name: "get_reference",
       arguments: {
-        id: "weapon.nope"
+        id: "weapon.r99_smg.damage",
+        version: "missing-version"
       }
     });
     expect(missing.structuredContent).toEqual({
       found: false,
-      reason: "reference_not_found",
-      candidates: []
+      reason: "version_not_found",
+      candidates: [
+        expect.objectContaining({
+          id: "weapon.r99_smg.damage"
+        })
+      ]
     });
 
     await server.close();
