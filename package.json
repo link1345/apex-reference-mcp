@@ -4,10 +4,11 @@
   "type": "module",
   "private": true,
   "bin": {
-    "apex-reference-mcp": "./src/index.ts"
+    "apex-reference-mcp": "./bin/apex-reference-mcp.ts"
   },
   "scripts": {
-    "start": "bun run src/index.ts",
+    "start": "bun run bin/apex-reference-mcp.ts",
+    "mcp:start": "bun run bin/apex-reference-mcp.ts",
     "changes:extract": "bun run src/reference/changePipelineCli.ts extract",
     "changes:approve": "bun run src/reference/changePipelineCli.ts approve",
     "references:validate": "bun run src/reference/validationCli.ts",

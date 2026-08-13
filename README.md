@@ -18,7 +18,30 @@ bun run changes:extract -- --input ./release-note.md --output ./data/changes/pen
 bun run changes:approve -- --candidates ./data/changes/pending/release-note.json --references ./data/references/sample.json
 ```
 
-`bun run start` launches a stdio MCP server.
+`bun run start` launches a stdio MCP server. MCP clients can also run the package entrypoint directly:
+
+```json
+{
+  "mcpServers": {
+    "apex-reference": {
+      "command": "bun",
+      "args": ["/Users/link/dev/apex-reference-mcp/bin/apex-reference-mcp.ts"]
+    }
+  }
+}
+```
+
+If the package is linked or installed, use the binary name instead:
+
+```json
+{
+  "mcpServers": {
+    "apex-reference": {
+      "command": "apex-reference-mcp"
+    }
+  }
+}
+```
 
 ## Data Model
 
